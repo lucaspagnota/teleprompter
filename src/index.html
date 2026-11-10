@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teleprompter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ===== Biblioteca ===== -->
+  <section id="tela-biblioteca" class="tela natal">
+    <div class="neve" aria-hidden="true"></div>
+    <header class="topo">
+      <div class="marca">
+        <span class="estrela" aria-hidden="true">★</span>
+        <div>
+          <h1>Teleprompter</h1>
+          <p class="sub">Roteiros do teatro, em letra grande</p>
+        </div>
+      </div>
+      <div class="acoes">
+        <button class="btn ouro" id="btn-importar">Importar PDF</button>
+        <button class="btn" id="btn-nova">Nova peça</button>
+        <button class="btn icone" id="btn-config-bib" title="Configurações">⚙</button>
+      </div>
+    </header>
+    <main class="conteudo">
+      <div id="lista-pecas" class="lista"></div>
+      <div id="vazio" class="vazio" hidden>
+        <div class="vazio-icone" aria-hidden="true">🎄</div>
+        <h2>Nenhuma peça ainda</h2>
+        <p>Clique em <b>Importar PDF</b> ou arraste o roteiro para esta janela.</p>
+      </div>
+    </main>
+    <footer class="rodape">Arraste um PDF para cá a qualquer momento · <span id="versao"></span></footer>
+    <input type="file" id="arquivo" accept=".pdf,.txt,application/pdf,text/plain" hidden>
+  </section>
+
+  <!-- ===== Importação ===== -->
+  <section id="tela-importar" class="tela natal" hidden>
+    <header class="topo">
+      <div class="marca"><span class="estrela" aria-hidden="true">★</span><h1>Importar roteiro</h1></div>
+      <div class="acoes">
+        <button class="btn" data-voltar>Cancelar</button>
+        <button class="btn ouro" id="imp-salvar" disabled>Salvar peça</button>
+      </div>
+    </header>
+    <main class="conteudo importar">
+      <div id="imp-carregando" class="carregando">
+        <div class="girando" aria-hidden="true">❄</div>
+        <p id="imp-progresso">Lendo o PDF…</p>
+      </div>
+      <div id="imp-pronto" class="duas-colunas" hidden>
+        <div class="painel">
+          <label class="campo">Nome da peça
+            <input type="text" id="imp-titulo">
+          </label>
+          <h3>O que é cada cor do PDF?</h3>
+          <p class="dica">Encontrei estes estilos de texto. Confira a sugestão de cada um.</p>
+          <div id="imp-estilos" class="estilos"></div>
+          <label class="check"><input type="checkbox" id="imp-parenteses" checked> Texto entre parênteses dentro da fala é observação</label>
+        </div>
+        <div class="painel previa-painel">
+          <h3>Prévia</h3>
+          <div id="imp-previa" class="previa"></div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ===== Editor ===== -->
+  <section id="tela-editor" class="tela natal" hidden>
+    <header class="topo">
+      <div class="marca"><span class="estrela" aria-hidden="true">★</span><input type="text" id="ed-titulo" class="titulo-edit" placeholder="Nome da peça"></div>
+      <div class="acoes">
+        <button class="btn" data-voltar>Voltar</button>
+        <button class="btn" id="ed-salvar">Salvar</button>
+        <button class="btn ouro" id="ed-ler">▶ Teleprompter</button>
+      </div>
+    </header>
+    <main class="conteudo duas-colunas editor">
+      <div class="painel">
+        <div class="barra-ed">
+          <button class="btn mini obs" data-marca="obs" title="Observação (amarelo)">Observação</button>
+          <button class="btn mini som" data-marca="som" title="Sonoplastia (verde)">Sonoplastia</button>
+          <button class="btn mini" data-marca="b" title="Negrito"><b>N</b></button>
+          <button class="btn mini" data-marca="limpar" title="Tirar as marcas do trecho">Limpar</button>
+          <span id="ed-status" class="status"></span>
+        </div>
+        <textarea id="ed-texto" spellcheck="false"></textarea>
+        <p class="dica">Linha em branco separa parágrafos. Selecione um trecho e use os botões para marcar.</p>
+      </div>
+      <div class="painel previa-painel">
+        <h3>Prévia</h3>
+        <div id="ed-previa" class="previa"></div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ===== Teleprompter ===== -->
+  <section id="tela-leitor" class="tela leitor" hidden>
+    <div id="leitor-area" class="leitor-area">
+      <div id="leitor-bloco" class="leitor-bloco"></div>
+    </div>
+    <div id="leitor-pagina" class="leitor-pagina"></div>
+    <div id="leitor-barra" class="leitor-barra">
+      <button class="btn" id="lt-sair" title="Voltar (Esc)">← Sair</button>
+      <span class="titulo-leitor" id="lt-titulo"></span>
+      <span class="grupo">
+        <button class="btn icone" id="lt-menos" title="Diminuir letra (-)">A−</button>
+        <span id="lt-tamanho" class="tamanho"></span>
+        <button class="btn icone" id="lt-mais" title="Aumentar letra (+)">A+</button>
+      </span>
+      <span class="grupo">
+        <button class="btn icone" id="lt-ant" title="Página anterior (←)">‹</button>
+        <input type="number" id="lt-ir" min="1" title="Ir para a página">
+        <span id="lt-total"></span>
+        <button class="btn icone" id="lt-prox" title="Próxima página (→)">›</button>
+      </span>
+      <button class="btn" id="lt-config" title="Configurações">⚙</button>
+      <button class="btn ouro" id="lt-tela-cheia" title="Tela cheia (F)">⛶ Tela cheia</button>
+    </div>
+  </section>
+
+  <!-- ===== Configurações ===== -->
+  <dialog id="config" class="natal-dialog">
+    <form method="dialog">
+      <h2>Configurações</h2>
+      <div class="grade-config">
+        <label>Tamanho da letra <span><input type="range" id="cf-fonte" min="24" max="200" step="2"> <output id="cf-fonte-o"></output></span></label>
+        <label>Espaço entre linhas <span><input type="range" id="cf-linha" min="1" max="2" step="0.05"> <output id="cf-linha-o"></output></span></label>
+        <label>Espaço entre parágrafos <span><input type="range" id="cf-paragrafo" min="0" max="1.5" step="0.1"> <output id="cf-paragrafo-o"></output></span></label>
+        <label>Margem dos lados <span><input type="range" id="cf-margem" min="0" max="30" step="1"> <output id="cf-margem-o"></output></span></label>
+        <label>Margem de cima e de baixo <span><input type="range" id="cf-margemv" min="0" max="20" step="1"> <output id="cf-margemv-o"></output></span></label>
+        <label>Fonte
+          <select id="cf-familia">
+            <option value="Arial, Helvetica, sans-serif">Arial</option>
+            <option value="Verdana, Geneva, sans-serif">Verdana</option>
+            <option value="'Segoe UI', Tahoma, sans-serif">Segoe UI</option>
+            <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+            <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+          </select>
+        </label>
+        <label>Posição do texto
+          <select id="cf-vertical">
+            <option value="centro">Centro da tela</option>
+            <option value="topo">Em cima</option>
+          </select>
+        </label>
+        <label class="cores">Cores
+          <span>
+            <input type="color" id="cf-cor-fala" title="Fala"> Fala
+            <input type="color" id="cf-cor-obs" title="Observação"> Observação
+            <input type="color" id="cf-cor-som" title="Sonoplastia"> Sonoplastia
+          </span>
+        </label>
+        <label class="check"><input type="checkbox" id="cf-nomes"> Nome do personagem em negrito (JOÃO:)</label>
+        <label class="check"><input type="checkbox" id="cf-numero"> Mostrar número da página</label>
+        <label class="check"><input type="checkbox" id="cf-espelhar"> Espelhar (para vidro de teleprompter)</label>
+      </div>
+      <div class="rodape-dialog">
+        <button class="btn" id="cf-padrao" type="button">Voltar ao padrão</button>
+        <button class="btn ouro" value="ok">Pronto</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="aviso" class="aviso" role="status" hidden></div>
+
+  <script src="vendor/pdf.min.js"></script>
+  <script src="vendor/pdf.worker.min.js"></script>
+  <script src="paginar.js"></script>
+  <script src="importar.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

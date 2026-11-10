@@ -1,0 +1,41 @@
+{
+  "name": "teleprompter",
+  "version": "1.0.0",
+  "description": "Teleprompter para teatro: importa o roteiro em PDF e mostra em páginas com letra grande.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "dist": "electron-builder --win portable"
+  },
+  "author": "Lucas Pagnota",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
+    "pdfjs-dist": "3.11.174"
+  },
+  "allowScripts": {
+    "electron@33.4.11": true
+  },
+  "productName": "Teleprompter",
+  "build": {
+    "appId": "br.lucaspagnota.teleprompter",
+    "productName": "Teleprompter",
+    "files": [
+      "main.js",
+      "src/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "Teleprompter.exe"
+    }
+  }
+}
