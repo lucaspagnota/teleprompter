@@ -62,3 +62,11 @@ test('encher a página continua a fala na seguinte, sem linha sozinha', () => {
   const r = P.paginar(P.lerTexto('aaaa bbbb cccc dddd eeee ffff\n\ngggg hhhh iiii'), { ...opc, encher: true });
   assert.strictEqual(r.paginas[0].itens.length, 3);
 });
+
+test('\\* é um asterisco de verdade, não negrito', () => {
+  const [p] = P.lerTexto('SAIDA TRIUNFAL\\*\\*\\* **fim**');
+  assert.deepStrictEqual(p.runs, [
+    { t: 'SAIDA TRIUNFAL*** ', tipo: 'fala', b: false },
+    { t: 'fim', tipo: 'fala', b: true },
+  ]);
+});

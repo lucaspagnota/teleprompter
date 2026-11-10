@@ -10,7 +10,7 @@
 (function (raiz) {
   'use strict';
 
-  const ESCALA = 1.5;
+  const ESCALA = 1;
 
   // ---------- cores ----------
 
@@ -138,6 +138,7 @@
       for (const l of linhas) {
         l.itens.sort((a, b) => a.x - b.x);
         l.x = l.itens[0].x;
+        l.fim = Math.max(...l.itens.filter(it => !it.vazio).map(it => it.x + it.w), l.x);
         l.pedacos = [];
         let fim = null;
         for (const it of l.itens) {
@@ -160,8 +161,9 @@
 
   // ---------- estilos ----------
 
+  // Com marca-texto vale só a cor do marca-texto (a letra por cima quase sempre é escura).
   const chaveDo = (p) =>
-    (p.fundo ? 'marca-texto ' + nomeDaCor(p.fundo) + ' · ' : '') + nomeDaCor(p.cor) + (p.i ? ' itálico' : '');
+    p.fundo ? 'marca-texto ' + nomeDaCor(p.fundo) : nomeDaCor(p.cor) + (p.i ? ' itálico' : '');
 
   /** Sugestão para cada estilo. */
   function sugerir(estilo, maisComum) {
@@ -193,7 +195,8 @@
   // ---------- montagem do texto ----------
 
   const NUM_PAGINA = /^\s*(p[aá]g(ina)?\.?\s*)?\d{1,4}(\s*(de|\/)\s*\d{1,4})?\s*$/i;
-  const NOME = /^\s*[A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ0-9 .'’\-]{1,30}:/;
+  // "MARIA:", "LUMINUS (VOZ DO ESPELHO):", "ELFOS (Falando em conjunto):"
+  const NOME = /^\s*[A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ0-9 .'’\-]{1,30}(\([^()]{1,40}\))?\s*:/;
 
   /** Cabeçalho ou rodapé que se repete na maioria das páginas. */
   function repetidas(paginas) {
@@ -212,23 +215,53 @@
     return fora;
   }
 
+  const mediana = (v) => {
+    if (!v.length) return 0;
+    const o = v.slice().sort((a, b) => a - b);
+    return o[Math.floor(o.length / 2)];
+  };
+  const tiposDe = (runs) => [...new Set(runs.filter(r => r.t.trim()).map(r => r.tipo))];
+  const TERMINA_FRASE = /[.!?…:)»"”]\s*$/;
+
   /**
    * Monta o texto marcado.
    * tipos: { [chave]: 'fala' | 'obs' | 'som' | 'ignorar' }
    * opcoes: { parenteses: true } transforma "(...)" dentro da fala em observação.
+   *
+   * Um parágrafo novo começa quando: há um espaço maior entre as linhas, o tamanho da letra muda,
+   * a linha começa com NOME:, o tipo (fala/obs/som) muda, ou a linha de cima terminou a frase
+   * antes do fim da margem (última linha de um parágrafo justificado).
+   * Na virada de página do PDF, o parágrafo continua se a frase não tinha terminado.
    */
   function montarTexto(paginas, tipos, opcoes = {}) {
     const fora = repetidas(paginas);
+
+    // Medidas do documento inteiro (uma página com poucas linhas engana).
+    const razoes = [];
+    const fins = [];
+    const inicios = [];
+    for (const linhas of paginas) {
+      for (let k = 0; k < linhas.length; k++) {
+        fins.push(linhas[k].fim);
+        inicios.push(linhas[k].x);
+        if (k) {
+          const dy = linhas[k].y - linhas[k - 1].y;
+          if (dy > 0 && dy < linhas[k - 1].h * 3) razoes.push(dy / linhas[k - 1].h);
+        }
+      }
+    }
+    const razao = mediana(razoes) || 1.2;
+    const ordFins = fins.slice().sort((a, b) => a - b);
+    const direita = ordFins[Math.floor(ordFins.length * 0.9)] || 0;
+    const esquerda = mediana(inicios);
+    const larguraTexto = Math.max(1, direita - esquerda);
+
     const paragrafos = [];
     let atual = null;
     let ultimoTipo = null;
+    let anterior = null;
 
-    for (const linhas of paginas) {
-      const distancias = [];
-      for (let k = 1; k < linhas.length; k++) distancias.push(linhas[k].y - linhas[k - 1].y);
-      distancias.sort((a, b) => a - b);
-      const normal = distancias.length ? distancias[Math.floor(distancias.length / 2)] : 0;
-
+    paginas.forEach((linhas, pg) => {
       linhas.forEach((l, k) => {
         const textoLinha = l.pedacos.map(p => p.t).join('');
         const norm = textoLinha.replace(/\d+/g, '#').trim().toLowerCase();
@@ -240,21 +273,40 @@
         let tipo = null;
         for (const p of l.pedacos) {
           if (!p.vazio && p.chave) tipo = tipos[p.chave] || 'fala';
-          const t = p.t;
           const tp = tipo || ultimoTipo || 'fala';
           if (tp === 'ignorar') continue;
           const ant = runs[runs.length - 1];
           const b = !!p.b && !p.vazio;
-          if (ant && ant.tipo === tp && (ant.b === b || p.vazio)) ant.t += t;
-          else runs.push({ t, tipo: tp, b });
+          if (ant && ant.tipo === tp && (ant.b === b || p.vazio)) ant.t += p.t;
+          else runs.push({ t: p.t, tipo: tp, b });
         }
         if (!runs.some(r => r.t.trim())) return;
 
-        const anterior = linhas[k - 1];
-        const salto = anterior && normal ? l.y - anterior.y > normal * 1.45 : true;
-        const comecaNome = NOME.test(textoLinha);
-        const mudouTipo = atual && runs[0].tipo !== atual.runs[atual.runs.length - 1].tipo;
-        if (!atual || salto || comecaNome || mudouTipo) {
+        let novo = !atual || !anterior;
+        if (!novo) {
+          const terminou = TERMINA_FRASE.test(anterior.texto);
+          if (anterior.pg === pg) {
+            const dy = l.y - anterior.y;
+            const salto = dy <= 0 || dy > razao * Math.max(l.h, anterior.h) * 1.4;
+            const mudouLetra = Math.abs(l.h - anterior.h) > 0.2 * Math.min(l.h, anterior.h);
+            const curta = anterior.fim < direita - larguraTexto * 0.2;
+            novo = salto || mudouLetra || (terminou && curta);
+          } else {
+            // Virada de página do PDF: continua se a frase não terminou
+            // (a não ser que a linha de cima seja curtinha, como um título ou "PASSOS").
+            novo = terminou || anterior.fim < esquerda + larguraTexto * 0.5;
+          }
+          // Parágrafo de um tipo só seguido de linha inteira de outro tipo (ex.: sonoplastia
+          // entre as falas) começa parágrafo novo. Fala com rubrica no meio, não: a rubrica
+          // pode terminar no fim da linha e a fala continuar na linha de baixo.
+          const tiposAtual = tiposDe(atual.runs);
+          const tipoAnt = tiposAtual.length === 1 ? tiposAtual[0] : null;
+          const tipoNovo = tiposDe(runs).length === 1 ? tiposDe(runs)[0] : null;
+          const mudouTipo = tipoAnt && tipoNovo && tipoAnt !== tipoNovo;
+          novo = novo || NOME.test(textoLinha) || mudouTipo;
+        }
+
+        if (novo) {
           atual = { runs: [] };
           paragrafos.push(atual);
         } else {
@@ -270,10 +322,9 @@
           else atual.runs.push({ ...r });
         }
         ultimoTipo = runs[runs.length - 1].tipo;
+        anterior = { pg, y: l.y, h: l.h, fim: l.fim, texto: textoLinha };
       });
-      // Página nova sempre começa parágrafo novo.
-      atual = null;
-    }
+    });
 
     return paragrafos.map(p => paraTexto(opcoes.parenteses === false ? p.runs : parenteses(p.runs))).join('\n\n');
   }
@@ -286,23 +337,52 @@
       const partes = r.t.split(/(\([^()]*\))/);
       for (const t of partes) if (t) out.push({ t, tipo: /^\(.*\)$/.test(t) ? 'obs' : 'fala', b: r.b });
     }
-    return out;
+    // Parêntese que ficou fora da rubrica no PDF: "(" normal + "Com cara de...)" em itálico.
+    for (let i = 0; i < out.length; i++) {
+      const r = out[i], prox = out[i + 1], ant = out[i - 1];
+      if (r.tipo === 'fala' && prox && prox.tipo === 'obs' && /\(\s*$/.test(r.t) && !/^\s*\(/.test(prox.t)) {
+        r.t = r.t.replace(/\(\s*$/, '');
+        prox.t = '(' + prox.t.replace(/^\s+/, '');
+      }
+      if (r.tipo === 'fala' && ant && ant.tipo === 'obs' && /^\s*\)/.test(r.t) && !/\)\s*$/.test(ant.t)) {
+        r.t = r.t.replace(/^\s*\)/, '');
+        ant.t = ant.t.replace(/\s+$/, '') + ')';
+      }
+    }
+    return out.filter(r => r.t);
   }
 
-  /** Trechos -> texto com [obs], [som] e **negrito**. */
+  /**
+   * Trechos -> texto com [obs], [som] e **negrito**.
+   * Trechos seguidos do mesmo tipo ficam dentro de uma marca só: [obs]Entra **Luminus**, vestido...[/obs]
+   * Dois ou mais asteriscos do PDF viram \* para não serem lidos como negrito.
+   */
   function paraTexto(runs) {
     let s = '';
+    let tipo = 'fala';
+    let b = false;
+    let pendente = '';
     for (const r of runs) {
-      let t = r.t.replace(/\s+/g, ' ').replace(/\*\*/g, '*');
-      if (!t) continue;
-      const ini = t.match(/^\s*/)[0], fimEsp = t.match(/\s*$/)[0];
-      let meio = t.trim();
-      if (!meio) { s += ' '; continue; }
-      if (r.b) meio = '**' + meio + '**';
-      if (r.tipo === 'obs' || r.tipo === 'som') meio = '[' + r.tipo + ']' + meio + '[/' + r.tipo + ']';
-      s += ini + meio + fimEsp;
+      const t = r.t.replace(/\s+/g, ' ').replace(/\*{2,}/g, m => m.replace(/\*/g, '\\*'));
+      if (!t.trim()) { if (t) pendente = ' '; continue; }
+      const espaco = pendente || (/^\s/.test(t) ? ' ' : '');
+      if (r.tipo !== tipo) {
+        if (b) { s += '**'; b = false; }
+        if (tipo !== 'fala') s += '[/' + tipo + ']';
+        s += espaco;
+        if (r.tipo !== 'fala') s += '[' + r.tipo + ']';
+        tipo = r.tipo;
+        if (r.b) { s += '**'; b = true; }
+      } else if (r.b !== b) {
+        s += b ? '**' + espaco : espaco + '**';
+        b = r.b;
+      } else s += espaco;
+      s += t.trim();
+      pendente = /\s$/.test(t) ? ' ' : '';
     }
-    return s.replace(/ {2,}/g, ' ').trim();
+    if (b) s += '**';
+    if (tipo !== 'fala') s += '[/' + tipo + ']';
+    return s.trim();
   }
 
   raiz.Importar = { lerPdf, estilosDe, montarTexto, nomeDaCor, corNaCaixa, paraTexto };

@@ -210,6 +210,7 @@
     const box = $('#imp-estilos');
     box.textContent = '';
     for (const e of importacao.estilos) {
+      if (e.letras < 3) continue; // sobra de pontuação: fica com a sugestão
       const linha = document.createElement('div');
       linha.className = 'estilo';
       const amostra = document.createElement('div');

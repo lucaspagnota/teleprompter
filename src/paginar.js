@@ -4,7 +4,7 @@
 //   - linha em branco separa parágrafos; quebra de linha simples é mantida
 //   - [obs]...[/obs]  observação / rubrica (amarelo)
 //   - [som]...[/som]  sonoplastia (verde)
-//   - **...**         negrito
+//   - **...**         negrito  (\* é um asterisco de verdade)
 // Uma marca sem fechamento vale até o fim do parágrafo.
 //
 // A paginação é feita em pixels: cada linha mede fonte x espaçamento. Com "encher",
@@ -28,7 +28,7 @@
       let tipo = 'fala';
       let b = false;
       let ultimo = 0;
-      const re = /\[(\/?)(obs|som)\]|\*\*/gi;
+      const re = /\\\*|\[(\/?)(obs|som)\]|\*\*/gi;
       let m;
       const empurrar = (t) => {
         if (!t) return;
@@ -39,7 +39,8 @@
       while ((m = re.exec(bloco))) {
         empurrar(bloco.slice(ultimo, m.index));
         ultimo = re.lastIndex;
-        if (m[0] === '**') b = !b;
+        if (m[0] === '\\*') empurrar('*');
+        else if (m[0] === '**') b = !b;
         else if (m[1]) tipo = 'fala';
         else tipo = m[2].toLowerCase();
       }
