@@ -32,8 +32,9 @@ Pedais de virar página (Bluetooth ou USB) funcionam porque mandam essas mesmas 
 Mexendo o mouse aparece a barra com tamanho da letra, ir para a página, configurações e tela cheia.
 
 As páginas são montadas para caber na tela: muda a letra ou o tamanho da janela e o app refaz as páginas
-sem perder o lugar. Uma fala que cabe numa página não é cortada ao meio, e o nome do personagem nunca
-fica sozinho no fim da página.
+sem perder o lugar. Cada página é usada até o fim, para caber o máximo de texto; a fala continua na
+página seguinte, mas nunca fica uma linha sozinha. Prefere não cortar falas? Desligue **Encher a página**
+nas configurações: aí a fala que cabe numa página vai inteira para a próxima.
 
 Em **⚙ Configurações**: tamanho da letra, espaço entre linhas e parágrafos, margens, fonte, texto no centro
 ou em cima, cores, nome do personagem em negrito, número da página e **espelhar** (para vidro de teleprompter).

@@ -7,8 +7,9 @@
 //   - **...**         negrito
 // Uma marca sem fechamento vale até o fim do parágrafo.
 //
-// A paginação é feita em pixels: cada linha mede fonte x espaçamento, e um parágrafo
-// só é dividido entre páginas quando não cabe inteiro nem numa página vazia.
+// A paginação é feita em pixels: cada linha mede fonte x espaçamento. Com "encher",
+// cada página vai até o fim (a fala continua na seguinte); sem ele, uma fala só é
+// dividida entre páginas quando não cabe inteira nem numa página vazia.
 
 (function (raiz) {
   'use strict';
@@ -130,7 +131,9 @@
 
   /**
    * Monta as páginas.
-   * opcoes: { largura, altura, linha (px por linha), espacoParagrafo (px), medir, destacarNomes }
+   * opcoes: { largura, altura, linha (px por linha), espacoParagrafo (px), medir, destacarNomes, encher }
+   * encher: true usa a página até o fim, continuando a fala na seguinte;
+   *         false leva a fala inteira para a próxima página quando ela cabe numa página vazia.
    * Devolve { paginas: [{ inicio, itens: [{ linha } | { espaco: px }] }], larguraMax }.
    * `inicio` é o índice do primeiro parágrafo da página (para não perder o lugar ao mudar a fonte).
    */
@@ -160,7 +163,12 @@
       if (atual.itens.length && usado + espaco + alturaP > altura + 0.5) {
         const cabeVazia = alturaP <= altura + 0.5;
         const sobra = Math.floor((altura + 0.5 - usado - espaco) / linha);
-        if (cabeVazia || sobra < 2) {
+        // Encher a página: a fala continua na próxima, mas nunca deixa uma linha sozinha
+        // no fim da página nem no começo da seguinte.
+        const dividir = opcoes.encher
+          ? sobra >= 2 && (linhas.length - sobra >= 2 || !cabeVazia)
+          : !cabeVazia && sobra >= 2;
+        if (!dividir) {
           // Nome do personagem sozinho no fim da página vai junto para a próxima.
           const ult = atual.grupos[atual.grupos.length - 1];
           let leva = null;

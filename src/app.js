@@ -19,6 +19,7 @@
     corObs: '#ffd84d',
     corSom: '#4dff88',
     nomes: true,
+    encher: true,
     numero: true,
     espelhar: false,
   };
@@ -378,6 +379,7 @@
       espacoParagrafo: Math.round(linha * config.paragrafo),
       medir: medidor(fonte, config.familia),
       destacarNomes: config.nomes,
+      encher: config.encher,
     });
     leitor.paginas = r.paginas;
     leitor.larguraMax = Math.min(largura, Math.ceil(r.larguraMax) + 2);
@@ -498,7 +500,7 @@
     ['#cf-cor-obs', 'corObs', String],
     ['#cf-cor-som', 'corSom', String],
   ];
-  const CHECKS = [['#cf-nomes', 'nomes'], ['#cf-numero', 'numero'], ['#cf-espelhar', 'espelhar']];
+  const CHECKS = [['#cf-encher', 'encher'], ['#cf-nomes', 'nomes'], ['#cf-numero', 'numero'], ['#cf-espelhar', 'espelhar']];
 
   function preencherConfig() {
     for (const [sel, chave, , fmt] of CAMPOS) {

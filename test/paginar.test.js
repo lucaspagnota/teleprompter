@@ -48,3 +48,17 @@ test('nome sozinho no fim da página vai para a próxima', () => {
   assert.deepStrictEqual(textos[0], ['aaaa bbbb']);
   assert.strictEqual(textos[1][0], 'JOSÉ:');
 });
+
+test('encher a página continua a fala na seguinte, sem linha sozinha', () => {
+  // Parágrafo 1: 2 linhas. Parágrafo 2: 4 linhas. Página de 4 linhas.
+  const texto = 'aaaa bbbb cccc\n\ndddd eeee ffff gggg hhhh iiii jjjj';
+  const opc = { largura: 90, altura: 40, linha: 10, espacoParagrafo: 0, medir };
+  const cheia = P.paginar(P.lerTexto(texto), { ...opc, encher: true });
+  assert.strictEqual(cheia.paginas.length, 2);
+  assert.strictEqual(cheia.paginas[0].itens.length, 4);
+  const inteira = P.paginar(P.lerTexto(texto), { ...opc, encher: false });
+  assert.strictEqual(inteira.paginas[0].itens.length, 2);
+  // Só 1 linha caberia no fim: não divide.
+  const r = P.paginar(P.lerTexto('aaaa bbbb cccc dddd eeee ffff\n\ngggg hhhh iiii'), { ...opc, encher: true });
+  assert.strictEqual(r.paginas[0].itens.length, 3);
+});
