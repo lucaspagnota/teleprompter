@@ -196,6 +196,7 @@
 
   const NUM_PAGINA = /^\s*(p[aá]g(ina)?\.?\s*)?\d{1,4}(\s*(de|\/)\s*\d{1,4})?\s*$/i;
   // "MARIA:", "LUMINUS (VOZ DO ESPELHO):", "ELFOS (Falando em conjunto):"
+  const CENA_INICIO = /^\s*(cena|ato|quadro)\s+(\d{1,3}|[ivxlc]{1,6})\b/i;
   const NOME = /^\s*[A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ0-9 .'’\-]{1,30}(\([^()]{1,40}\))?\s*:/;
 
   /** Cabeçalho ou rodapé que se repete na maioria das páginas. */
@@ -303,7 +304,7 @@
           const tipoAnt = tiposAtual.length === 1 ? tiposAtual[0] : null;
           const tipoNovo = tiposDe(runs).length === 1 ? tiposDe(runs)[0] : null;
           const mudouTipo = tipoAnt && tipoNovo && tipoAnt !== tipoNovo;
-          novo = novo || NOME.test(textoLinha) || mudouTipo;
+          novo = novo || NOME.test(textoLinha) || CENA_INICIO.test(textoLinha) || mudouTipo;
         }
 
         if (novo) {
@@ -326,7 +327,24 @@
       });
     });
 
-    return paragrafos.map(p => paraTexto(opcoes.parenteses === false ? p.runs : parenteses(p.runs))).join('\n\n');
+    // "CENA 4 (O trio de elfos...)": o título da cena vira um parágrafo só dele.
+    const separados = paragrafos.flatMap((p) => {
+      const r0 = p.runs[0];
+      const m = r0.t.match(CENA_INICIO);
+      if (!m || p.runs.length === 1 && !r0.t.slice(m[0].length).trim()) return [p];
+      // Sem negrito, só separa "Cena 4 (rubrica...)"; "Cena 3 - A floresta" fica inteiro.
+      if (!r0.b && !/^\s*\(/.test(r0.t.slice(m[0].length))) return [p];
+      const titulo = r0.b ? r0.t.trim() : m[0].trim();
+      const resto = r0.b ? p.runs.slice(1) : [{ ...r0, t: r0.t.slice(m[0].length) }].concat(p.runs.slice(1));
+      if (resto.length) resto[0] = { ...resto[0], t: resto[0].t.replace(/^[\s:.\-–—]+/, '') };
+      return [{ runs: [{ ...r0, t: titulo }] }, { runs: resto.filter(r => r.t) }].filter(q => q.runs.length);
+    });
+
+    return separados.map((p) => {
+      const t = paraTexto(opcoes.parenteses === false ? p.runs : parenteses(p.runs));
+      // "CENA 1" vira marca de cena (vermelho, página nova), qualquer que seja a cor no PDF.
+      return raiz.Paginar && raiz.Paginar.ehCena(t) ? '[cena]' + t.replace(/\[\/?(obs|som)\]/g, '') + '[/cena]' : t;
+    }).join('\n\n');
   }
 
   /** "(sai pela esquerda)" dentro de uma fala vira observação. */

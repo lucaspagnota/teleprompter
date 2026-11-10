@@ -4,8 +4,10 @@
 //   - linha em branco separa parágrafos; quebra de linha simples é mantida
 //   - [obs]...[/obs]  observação / rubrica (amarelo)
 //   - [som]...[/som]  sonoplastia (verde)
+//   - [cena]...[/cena] começo de cena (vermelho, sempre em página nova)
 //   - **...**         negrito  (\* é um asterisco de verdade)
 // Uma marca sem fechamento vale até o fim do parágrafo.
+// Parágrafo que é só "CENA 1", "Cena 2 - A floresta", "ATO II"... vira cena sozinho.
 //
 // A paginação é feita em pixels: cada linha mede fonte x espaçamento. Com "encher",
 // cada página vai até o fim (a fala continua na seguinte); sem ele, uma fala só é
@@ -17,6 +19,10 @@
   const MAIUSC = 'A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ';
   const NOME_COM_DOIS_PONTOS = new RegExp('^(\\s*[' + MAIUSC + '][' + MAIUSC + '0-9 .\'’\\-]{0,30}:)');
   const SO_NOME = new RegExp('^\\s*[' + MAIUSC + '][' + MAIUSC + '0-9 .\'’\\-]{0,30}:?\\s*$');
+  const CENA = /^\s*(cena|ato|quadro)\s+([0-9]{1,3}|[ivxlc]{1,6}|[úu]nic[ao])\b[^\n]{0,60}$/i;
+
+  /** "CENA 1", "Cena 2 - A floresta", "ATO II"... */
+  const ehCena = (texto) => CENA.test(String(texto).replace(/\*\*|\[\/?(obs|som|cena)\]/gi, ''));
 
   /** Lê o texto marcado e devolve parágrafos com trechos { t, tipo, b }. */
   function lerTexto(texto) {
@@ -28,7 +34,7 @@
       let tipo = 'fala';
       let b = false;
       let ultimo = 0;
-      const re = /\\\*|\[(\/?)(obs|som)\]|\*\*/gi;
+      const re = /\\\*|\[(\/?)(obs|som|cena)\]|\*\*/gi;
       let m;
       const empurrar = (t) => {
         if (!t) return;
@@ -51,7 +57,10 @@
         runs[runs.length - 1].t = runs[runs.length - 1].t.replace(/\s+$/, '');
       }
       const limpos = runs.filter(r => r.t);
-      if (limpos.length) paragrafos.push({ runs: limpos });
+      if (!limpos.length) continue;
+      const cena = limpos.some(r => r.tipo === 'cena') || ehCena(limpos.map(r => r.t).join(''));
+      if (cena) for (const r of limpos) { r.tipo = 'cena'; r.b = true; }
+      paragrafos.push(cena ? { runs: limpos, cena } : { runs: limpos });
     }
     return paragrafos;
   }
@@ -158,7 +167,8 @@
       for (const l of linhas) larguraMax = Math.max(larguraMax, l.w);
       const alturaP = linhas.length * linha;
 
-      if (!atual) nova(i);
+      // Cena nova sempre começa numa página nova.
+      if (!atual || (original.cena && atual.itens.length)) nova(i);
       let espaco = atual.itens.length ? espacoParagrafo : 0;
 
       if (atual.itens.length && usado + espaco + alturaP > altura + 0.5) {
@@ -204,7 +214,7 @@
     return { paginas, larguraMax, porPagina };
   }
 
-  const api = { lerTexto, tipoDe, destacarNome, quebrar, paginar };
+  const api = { lerTexto, tipoDe, destacarNome, quebrar, paginar, ehCena };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else raiz.Paginar = api;
 })(typeof window !== 'undefined' ? window : globalThis);

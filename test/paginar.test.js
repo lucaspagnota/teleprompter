@@ -70,3 +70,12 @@ test('\\* é um asterisco de verdade, não negrito', () => {
     { t: 'fim', tipo: 'fala', b: true },
   ]);
 });
+
+test('CENA 1 vira cena e começa página nova', () => {
+  const ps = P.lerTexto('aaaa\n\n[obs]**CENA 2**[/obs]\n\nbbbb\n\nCena 3 - A floresta\n\nA cena 4 foi ótima, disse ele.');
+  assert.deepStrictEqual(ps.map(p => !!p.cena), [false, true, false, true, false]);
+  assert.strictEqual(ps[1].runs[0].tipo, 'cena');
+  const r = P.paginar(ps, { largura: 400, altura: 200, linha: 10, espacoParagrafo: 5, medir, encher: true });
+  assert.strictEqual(r.paginas.length, 3);
+  assert.deepStrictEqual(r.paginas.map(p => p.inicio), [0, 1, 3]);
+});

@@ -82,6 +82,7 @@ h1 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 28px;
 .btn.mini { padding: 6px 12px; font-size: 13px; }
 .btn.obs { color: #3a2c00; background: var(--obs); border-color: #b39400; }
 .btn.som { color: #003016; background: var(--som); border-color: #1f9e4c; }
+.btn.cena { color: #fff; background: #e8202a; border-color: #8f0f15; }
 .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--ouro-claro); outline-offset: 2px; }
 
 /* ---------- conteúdo ---------- */
@@ -179,6 +180,13 @@ input[type=text], input[type=number], select, textarea {
 }
 .marca-texto .t-obs { background: var(--cor-obs, var(--obs)); }
 .marca-texto .t-som { background: var(--cor-som, var(--som)); }
+/* Começo de cena: vermelho chamativo, sempre em negrito. */
+.t-cena { color: var(--cor-cena, #e8202a); font-weight: 700; }
+.marca-texto .t-cena {
+  color: #fff; background: var(--cor-cena, #e8202a); border-radius: .1em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.previa p.cena { margin-top: 1.1em; padding-top: .7em; border-top: 2px dashed rgba(255, 255, 255, .3); }
 
 /* ---------- teleprompter ---------- */
 .leitor { background: #000; color: #fff; cursor: none; }

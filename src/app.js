@@ -19,6 +19,7 @@
     corObs: '#ffd84d',
     corSom: '#4dff88',
     destaque: 'marca',
+    corCena: '#e8202a',
     nomes: true,
     encher: true,
     numero: true,
@@ -56,6 +57,7 @@
     r.setProperty('--cor-fala', config.corFala);
     r.setProperty('--cor-obs', config.corObs);
     r.setProperty('--cor-som', config.corSom);
+    r.setProperty('--cor-cena', config.corCena);
     document.documentElement.classList.toggle('marca-texto', config.destaque !== 'letra');
   }
 
@@ -82,6 +84,7 @@
     for (const p0 of paragrafos) {
       const p = config.nomes ? Paginar.destacarNome(p0) : p0;
       const el2 = document.createElement('p');
+      if (p0.cena) el2.className = 'cena';
       for (const r of p.runs) el2.appendChild(span(r));
       el.appendChild(el2);
     }
@@ -322,7 +325,7 @@
     while (fim > ini && /\s/.test(v[fim - 1])) fim--;
     if (ini === fim) return;
     ta.setSelectionRange(ini, fim);
-    const limpo = v.slice(ini, fim).replace(/\[\/?(obs|som)\]/gi, '');
+    const limpo = v.slice(ini, fim).replace(/\[\/?(obs|som|cena)\]/gi, '');
     let novo;
     if (tipo === 'limpar') novo = limpo.replace(/\*\*/g, '');
     else if (tipo === 'b') novo = '**' + v.slice(ini, fim).replace(/\*\*/g, '') + '**';
@@ -511,6 +514,7 @@
     ['#cf-cor-fala', 'corFala', String],
     ['#cf-cor-obs', 'corObs', String],
     ['#cf-cor-som', 'corSom', String],
+    ['#cf-cor-cena', 'corCena', String],
   ];
   const CHECKS = [['#cf-encher', 'encher'], ['#cf-nomes', 'nomes'], ['#cf-numero', 'numero'], ['#cf-espelhar', 'espelhar']];
 

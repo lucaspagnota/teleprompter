@@ -83,12 +83,13 @@
         <div class="barra-ed">
           <button class="btn mini obs" data-marca="obs" title="Observação (amarelo)">Observação</button>
           <button class="btn mini som" data-marca="som" title="Sonoplastia (verde)">Sonoplastia</button>
+          <button class="btn mini cena" data-marca="cena" title="Começo de cena (vermelho, página nova)">Cena</button>
           <button class="btn mini" data-marca="b" title="Negrito"><b>N</b></button>
           <button class="btn mini" data-marca="limpar" title="Tirar as marcas do trecho">Limpar</button>
           <span id="ed-status" class="status"></span>
         </div>
         <textarea id="ed-texto" spellcheck="false"></textarea>
-        <p class="dica">Linha em branco separa parágrafos. Selecione um trecho e use os botões para marcar.</p>
+        <p class="dica">Linha em branco separa parágrafos. Selecione um trecho e use os botões para marcar. "CENA 1", "CENA 2"… viram cena sozinhos e começam numa página nova.</p>
       </div>
       <div class="painel previa-painel">
         <h3>Prévia</h3>
@@ -158,6 +159,7 @@
             <input type="color" id="cf-cor-fala" title="Fala"> Fala
             <input type="color" id="cf-cor-obs" title="Observação"> Observação
             <input type="color" id="cf-cor-som" title="Sonoplastia"> Sonoplastia
+            <input type="color" id="cf-cor-cena" title="Cena"> Cena
           </span>
         </label>
         <label class="check"><input type="checkbox" id="cf-encher"> Encher a página (a fala pode continuar na página seguinte)</label>

@@ -1,7 +1,8 @@
 # Teleprompter
 
 Teleprompter para o teatro da escola. Importa o roteiro em PDF e mostra em páginas de letra grande,
-fundo preto e letra branca, com as observações em marca-texto amarelo e a sonoplastia em marca-texto verde.
+fundo preto e letra branca, com as observações em marca-texto amarelo, a sonoplastia em marca-texto verde
+e o começo de cada cena em vermelho, sempre numa página nova.
 Serve para qualquer peça: cada roteiro importado fica guardado na biblioteca do app.
 
 ## Usar
@@ -51,8 +52,10 @@ ou em cima, observação e sonoplastia em marca-texto ou em letra colorida, core
 
 - linha em branco separa parágrafos
 - `[obs]...[/obs]` observação (amarelo) · `[som]...[/som]` sonoplastia (verde) · `**...**` negrito
+- `[cena]...[/cena]` começo de cena (vermelho, sempre numa página nova). "CENA 1", "Cena 2 - A floresta",
+  "ATO II"… sozinhos num parágrafo já viram cena sem precisar marcar
 - `NOME:` no começo da fala fica em negrito sozinho
-- os botões **Observação**, **Sonoplastia**, **N** e **Limpar** marcam o trecho selecionado
+- os botões **Observação**, **Sonoplastia**, **Cena**, **N** e **Limpar** marcam o trecho selecionado
   (sem seleção, marcam o parágrafo inteiro)
 
 **Exportar** salva a peça num `.txt`; para trazer de volta, use **Importar PDF** e escolha o `.txt`.
