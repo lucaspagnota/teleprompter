@@ -1,7 +1,7 @@
 # Teleprompter
 
 Teleprompter para o teatro da escola. Importa o roteiro em PDF e mostra em páginas de letra grande,
-fundo preto e letra branca, com as observações em amarelo e a sonoplastia em verde.
+fundo preto e letra branca, com as observações em marca-texto amarelo e a sonoplastia em marca-texto verde.
 Serve para qualquer peça: cada roteiro importado fica guardado na biblioteca do app.
 
 ## Usar
@@ -37,7 +37,7 @@ página seguinte, mas nunca fica uma linha sozinha. Prefere não cortar falas? D
 nas configurações: aí a fala que cabe numa página vai inteira para a próxima.
 
 Em **⚙ Configurações**: tamanho da letra, espaço entre linhas e parágrafos, margens, fonte, texto no centro
-ou em cima, cores, nome do personagem em negrito, número da página e **espelhar** (para vidro de teleprompter).
+ou em cima, observação e sonoplastia em marca-texto ou em letra colorida, cores, nome do personagem em negrito, número da página e **espelhar** (para vidro de teleprompter).
 
 ## Como escrever no editor
 

@@ -18,6 +18,7 @@
     corFala: '#ffffff',
     corObs: '#ffd84d',
     corSom: '#4dff88',
+    destaque: 'marca',
     nomes: true,
     encher: true,
     numero: true,
@@ -55,13 +56,22 @@
     r.setProperty('--cor-fala', config.corFala);
     r.setProperty('--cor-obs', config.corObs);
     r.setProperty('--cor-som', config.corSom);
+    document.documentElement.classList.toggle('marca-texto', config.destaque !== 'letra');
   }
 
+  /** Trecho colorido. Os espaços das pontas ficam fora, para o marca-texto não pintar o espaço. */
   function span(seg) {
-    const s = document.createElement('span');
-    s.className = 't-' + seg.tipo + (seg.b ? ' t-b' : '');
-    s.textContent = seg.t;
-    return s;
+    const f = document.createDocumentFragment();
+    const m = seg.t.match(/^(\s*)([\s\S]*?)(\s*)$/);
+    if (m[1]) f.appendChild(document.createTextNode(m[1]));
+    if (m[2]) {
+      const s = document.createElement('span');
+      s.className = 't-' + seg.tipo + (seg.b ? ' t-b' : '');
+      s.textContent = m[2];
+      f.appendChild(s);
+    }
+    if (m[3]) f.appendChild(document.createTextNode(m[3]));
+    return f;
   }
 
   /** Prévia rolando (importação e editor). */
@@ -497,6 +507,7 @@
     ['#cf-margemv', 'margemV', Number, v => v + '%'],
     ['#cf-familia', 'familia', String],
     ['#cf-vertical', 'vertical', String],
+    ['#cf-destaque', 'destaque', String],
     ['#cf-cor-fala', 'corFala', String],
     ['#cf-cor-obs', 'corObs', String],
     ['#cf-cor-som', 'corSom', String],
